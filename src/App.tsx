@@ -1,5 +1,4 @@
 import React, { useState } from 'react';
-import logo from './logo.svg';
 import { AppWrapper, ClickableTitle } from './style';
 import FireCalculator from './components/fire-calculator';
 
