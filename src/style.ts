@@ -33,5 +33,6 @@ export const ClickableTitle = styled.h2`
 
 export const BoxHeader = styled.h3`
     margin: 0;
-    float: left;
+    width: 100%;
+    text-align: left;
 `;

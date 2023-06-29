@@ -1,6 +1,10 @@
 import styled from 'styled-components';
 import { bgColors } from '../styles/colors';
 
+export const StyledPoint = styled.circle`
+  fill: ${(props) => props.color};
+`;
+
 export const FireWrapper = styled.div`
     background-color: #${bgColors.girlyPink};
     display: flex;
@@ -14,7 +18,4 @@ export const FireBox = styled.div`
     max-width: 550px; 
     margin: 10px;
     padding: 10px;
-`;
-export const input = styled.input`
-    
 `;

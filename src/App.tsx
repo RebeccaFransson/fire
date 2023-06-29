@@ -1,18 +1,20 @@
-import React, { useState } from 'react';
-import { AppWrapper, ClickableTitle } from './style';
-import FireCalculator from './components/fire-calculator';
+import React, { useState } from "react";
+import { AppWrapper, ClickableTitle } from "./style";
+import FireCalculator from "./components/fire-calculator";
 
 function App() {
-  const [ fireCalucatorOpen, setFireCalucatorOpen ] = useState(false);
+  const [fireCalucatorOpen, setFireCalucatorOpen] = useState(false);
 
   return (
     <AppWrapper>
+      <div>Rebecca Fransson</div>
       <div>
-        Rebecca Fransson
-      </div>
-      <div onClick={() => setFireCalucatorOpen(!fireCalucatorOpen)}>
-        <ClickableTitle>Fire calculator</ClickableTitle>
-        { fireCalucatorOpen ? <FireCalculator /> : null }
+        <ClickableTitle
+          onClick={() => setFireCalucatorOpen(!fireCalucatorOpen)}
+        >
+          Fire calculator
+        </ClickableTitle>
+        {fireCalucatorOpen ? <FireCalculator /> : null}
       </div>
       <div>
         <ClickableTitle>Theme</ClickableTitle>
