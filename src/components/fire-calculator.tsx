@@ -6,6 +6,7 @@ import { BoxHeader } from "../style";
 import { FireBox, FireWrapper, StyledPoint } from "./style";
 import * as V from "victory";
 import React, { useState, useEffect } from "react";
+import { Card } from "@mui/material";
 
 const ScatterPoint = ({ x, y, datum, min, max }: any) => {
   const colors = ["#FF8C94", "#FFAAA6", "#FFD3B5", "#DCEDC2", "#A8E6CE"];
@@ -64,6 +65,7 @@ function FireCalculator() {
 
   return (
     <FireWrapper>
+      <Card variant="outlined">hi there</Card>
       <FireBox>
         <BoxHeader>Input values</BoxHeader>
         <label>
