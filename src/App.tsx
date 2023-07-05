@@ -1,6 +1,6 @@
 import React, { useMemo, useState } from "react";
 import { Flexbox, Main } from "./style";
-import FireCalculator from "./components/fire-calculator";
+import FireCalculator from "./components/fire/fire-calculator";
 import { Box, Card, CardContent, Typography } from "@mui/material";
 import { Sidebar } from "./components/sidebar/Sidebar";
 import { DrawerChoicesEnum } from "./styles/constants";
@@ -34,33 +34,6 @@ function App() {
         />
         <Main open={open}>
           {renderMain}
-          <Box sx={{ maxWidth: 275 }}>
-            <Card variant="outlined">
-              <CardContent>
-                <Typography
-                  sx={{ fontSize: 14 }}
-                  color="text.secondary"
-                  gutterBottom
-                >
-                  Savings
-                </Typography>
-              </CardContent>
-            </Card>
-          </Box>
-
-          <Box sx={{ maxWidth: 275 }}>
-            <Card variant="outlined">
-              <CardContent>
-                <Typography
-                  sx={{ fontSize: 14 }}
-                  color="text.secondary"
-                  gutterBottom
-                >
-                  Expenses
-                </Typography>
-              </CardContent>
-            </Card>
-          </Box>
         </Main>
       </Flexbox>
     </>

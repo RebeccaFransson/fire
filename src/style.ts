@@ -1,7 +1,7 @@
 import styledSC from "styled-components";
 import { styled as styledMUI } from "@mui/material/styles";
 import { bgColors, textColors } from "./styles/colors";
-import { Box, CSSObject, Drawer as DrawerMUI, ListItem, Theme } from "@mui/material";
+import { Box, Card as CardMUI, CSSObject, Drawer as DrawerMUI, ListItem, Theme } from "@mui/material";
 
 import MuiAppBar, { AppBarProps as MuiAppBarProps } from "@mui/material/AppBar";
 import { expandedDrawerWidth, miniDrawerWidth } from "./styles/constants";
@@ -66,3 +66,7 @@ export const Main = styledMUI("main", {
     marginLeft: 0,
   }),
 }));
+
+export const Card = styledMUI(CardMUI)(({theme}) => ({
+  margin: 3,
+}))
