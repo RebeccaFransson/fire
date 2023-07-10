@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useMemo, useState } from "react";
 import {
   Box,
   Button,
@@ -12,14 +12,8 @@ import {
 import { Card, Flexbox } from "../../style";
 import { getAgeTextField } from "../extra/inputs";
 import { getText, getTitle } from "../extra/text";
-import {
-  FlexBoxSpaceAroundColumn,
-  FlexBoxSpaceAroundRow,
-} from "./style";
-import Chart from "react-apexcharts";
-import { ApexOptions } from "apexcharts";
-import { bgColors } from "../../styles/colors";
-
+import { FlexBoxSpaceAroundColumn, FlexBoxSpaceAroundRow } from "./style";
+import Chart from "./chart";
 
 function FireCalculator() {
   const [monthlySavings, setMonthlySavings] = useState(100);
@@ -35,7 +29,7 @@ function FireCalculator() {
     let sumSavedMoney = yearlySavings;
     for (let index = age; index < retireAge; index++) {
       sumSavedMoney = sumSavedMoney * inflationPercentile + sumSavedMoney;
-      
+
       moneyGrowth.push(Math.round(sumSavedMoney));
     }
     return moneyGrowth;
@@ -54,95 +48,8 @@ function FireCalculator() {
     return () => clearTimeout(timer);
   }, [monthlySavings, age, retireAge, inflationPercent]);
 
-
   console.log(moneyGrowth[moneyGrowth.length - 1]);
 
-  const data2 = {
-    options: {
-      chart: {
-        height: 350,
-        type: "line",
-        dropShadow: {
-          enabled: true,
-          color: "#000",
-          top: 10,
-          left: 7,
-          blur: 7,
-          opacity: 0.2,
-        },
-        toolbar: {
-          show: true,
-        },
-      },
-      colors: [bgColors.darkPink],
-      stroke: {
-        curve: "straight",
-      },
-      markers: {
-        size: 1,
-      },
-      yaxis: {
-        labels: {
-          formatter: (money) => {
-            if (money > 100000) return `$${Math.round(money/10000)/10}mil`;
-            if (money > 1000) return `$${Math.round(money/100)/10}k`;
-            return `$${money}`;
-          },
-        },
-      },
-      xaxis: {
-        categories: Array.apply(null, { length: retireAge + 1 } as unknown[])
-          .map(Number.call, Number)
-          .slice(age),
-        title: {
-          text: "Your age",
-        },
-      },
-      legend: {
-        position: "top",
-        horizontalAlign: "right",
-        floating: true,
-        offsetY: -25,
-        offsetX: -5,
-      },
-      annotations: {
-        yaxis: [
-          {
-            y: 10000,
-            borderColor: bgColors.green,
-            label: {
-              borderColor: bgColors.green,
-              style: {
-                color: "#000",
-                background: bgColors.lightGreen,
-              },
-              text: "Your first 100k!",
-            },
-          },
-        ],
-        xaxis: [
-          {
-            x: 37,
-            borderColor: bgColors.green,
-            label: {
-              borderColor: bgColors.green,
-              style: {
-                color: "#000",
-                background: bgColors.lightGreen,
-              },
-              text: "Your made a svanings change",
-            },
-          },
-        ],
-      },
-    } as ApexOptions,
-    series: [
-      {
-        name: "$",
-        data: moneyGrowth,
-      },
-    ],
-  };
 
   return (
     <>
@@ -273,12 +180,6 @@ function FireCalculator() {
             {getTitle("Result")}
 
             <Divider />
-            <Chart
-              options={data2.options}
-              series={data2.series}
-              type="line"
-              width="100%"
-            />
           </CardContent>
         </Card>
       </FlexBoxSpaceAroundRow>
