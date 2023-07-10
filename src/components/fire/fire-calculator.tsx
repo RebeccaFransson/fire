@@ -1,30 +1,47 @@
 import { BoxHeader, Flexbox, Card } from "../../style";
-import { FlexBoxSpaceAroundColumn, FlexBoxSpaceAroundRow } from "./style";
+import {
+  FlexBoxSpaceAroundColumn,
+  FlexBoxSpaceAroundRow,
+  StyledPoint,
+} from "./style";
 import * as V from "victory";
 import React, { useState, useEffect } from "react";
-import { Button, CardActions, CardContent, Typography } from "@mui/material";
+import {
+  Box,
+  Button,
+  CardActions,
+  CardContent,
+  Divider,
+  InputAdornment,
+  Slider,
+  Stack,
+  TextField,
+  Typography,
+} from "@mui/material";
 import { bgColors } from "../../styles/colors";
+import { getAgeTextField } from "../extra/inputs";
+import { getText, getTitle } from "../extra/text";
 
-/*const ScatterPoint = ({ x, y, datum, min, max }: any) => {
+const ScatterPoint = ({ x, y, datum, min, max }: any) => {
   const colors = ["#FF8C94", "#FFAAA6", "#FFD3B5", "#DCEDC2", "#A8E6CE"];
   const i = React.useMemo(() => {
     return Math.floor(((datum.y - min) / (max - min)) * (colors.length - 1));
   }, [datum, min, max]);
   return <StyledPoint color={colors[i]} cx={x} cy={y} r={3} />;
-};*/
+};
 
 type ChartData = { x: number; y: number };
 
 function FireCalculator() {
-  let timeoutFunc = null;
   const [monthlySavings, setMonthlySavings] = useState(100);
+  const [monthlyExpenses, setMonthlyExpenses] = useState(3000);
   const [age, setAge] = useState(30);
   const [retireAge, setRetireAge] = useState(65);
   const [inflationPercent, setInflationPercent] = useState(7);
 
   const calculateFire = () => {
     const yearlySavings = monthlySavings * 12;
-    const inflationPercentile = 0.07;
+    const inflationPercentile = inflationPercent / 100;
     const data: ChartData[] = [];
     let sumSavedMoney = yearlySavings;
     for (let index = age; index < retireAge; index++) {
@@ -58,102 +75,152 @@ function FireCalculator() {
     return {x: x, y: y}
   });
   */
-  console.log(data[0]);
+  console.log(data[data.length - 1]);
 
   return (
     <>
-      <FlexBoxSpaceAroundRow >
-        <FlexBoxSpaceAroundColumn
-          sx={{ flexGrow: 2, backgroundColor: "#" + bgColors.lighterPink }}
-        >
-          <Card variant="outlined" sx={{}}>
+      <FlexBoxSpaceAroundRow sx={{ marginBottom: "20px" }}>
+        <FlexBoxSpaceAroundColumn sx={{ flexGrow: 2 }}>
+          <Card variant="outlined">
             <CardContent>
-              <Typography
-                sx={{ fontSize: 14 }}
-                color="text.secondary"
-                gutterBottom
-              >
-                Savings
-              </Typography>
+              {getTitle("Savings")}
+              <Divider sx={{ mb: "20px" }} />
+              <Flexbox>
+                <FlexBoxSpaceAroundColumn
+                  sx={{
+                    flexGrow: 2,
+                    alignItems: "baseline",
+                    padding: "0 20px",
+                  }}
+                >
+                  {getAgeTextField("Current age", age, setAge)}
+                  <Box sx={{ mt: "20px" }}>
+                    {getTitle(`Inflation: ${inflationPercent}%`)}
+                  </Box>
+                </FlexBoxSpaceAroundColumn>
+                <FlexBoxSpaceAroundColumn
+                  sx={{
+                    flexGrow: 2,
+                    alignItems: "baseline",
+                    padding: "0 20px",
+                  }}
+                >
+                  <TextField
+                    sx={{ width: "100px" }}
+                    id="standard-basic"
+                    label="Save each month"
+                    variant="standard"
+                    defaultValue={monthlySavings}
+                    size="small"
+                    onChange={(e) =>
+                      setMonthlySavings(parseInt(e.target.value))
+                    }
+                    InputProps={{
+                      startAdornment: (
+                        <InputAdornment position="start">$</InputAdornment>
+                      ),
+                    }}
+                  />
+                  <Box sx={{ mt: "25px", width: "280px" }}>
+                    <Slider
+                      aria-label="Volume"
+                      value={inflationPercent}
+                      onChange={(e: Event, newValue: number | number[]) =>
+                        setInflationPercent(newValue as number)
+                      }
+                      step={1}
+                      marks={true}
+                      min={0}
+                      max={10}
+                      valueLabelDisplay="auto"
+                      valueLabelFormat={(value: number) => {
+                        return `${value}%`;
+                      }}
+                    />
+                  </Box>
+                </FlexBoxSpaceAroundColumn>
+              </Flexbox>
             </CardContent>
             <CardActions sx={{ justifyContent: "end" }}>
               <Button size="small">Add change</Button>
             </CardActions>
           </Card>
-          <Card>
-            <CardContent>
-              <Typography
-                sx={{ fontSize: 14 }}
-                color="text.secondary"
-                gutterBottom
-              >
-                Add savings change card
-              </Typography>
-            </CardContent>
+          <Card variant="outlined">
+            <CardContent>{getText("Add savings change card")}</CardContent>
           </Card>
-          <Card>
-            <CardContent>
-              <Typography
-                sx={{ fontSize: 14 }}
-                color="text.secondary"
-                gutterBottom
-              >
-                Add savings change card
-              </Typography>
-            </CardContent>
+          <Card variant="outlined">
+            <CardContent>{getText("Add savings change card")}</CardContent>
           </Card>
         </FlexBoxSpaceAroundColumn>
-        <FlexBoxSpaceAroundColumn
-          sx={{ flexGrow: 1, backgroundColor: "#" + bgColors.lightPink }}
-        >
-          <Card variant="outlined" sx={{}}>
+        <FlexBoxSpaceAroundColumn sx={{ flexGrow: 1 }}>
+          <Card variant="outlined">
             <CardContent>
-              <Typography
-                sx={{ fontSize: 14 }}
-                color="text.secondary"
-                gutterBottom
-              >
-                Expenses
-              </Typography>
+              {getTitle("Expenses")}
+              <Divider sx={{ mb: "20px" }} />
+              <Flexbox>
+                <Flexbox
+                  sx={{
+                    flexGrow: 2,
+                    alignItems: "baseline",
+                  }}
+                >
+                  <TextField
+                    sx={{ width: "100px" }}
+                    id="standard-basic"
+                    label="Monthly expenses"
+                    variant="standard"
+                    defaultValue={monthlyExpenses}
+                    size="small"
+                    onChange={(e) =>
+                      setMonthlyExpenses(parseInt(e.target.value))
+                    }
+                    InputProps={{
+                      startAdornment: (
+                        <InputAdornment position="start">$</InputAdornment>
+                      ),
+                    }}
+                  />
+                </Flexbox>
+                <Flexbox
+                  sx={{
+                    flexGrow: 2,
+                    alignItems: "baseline",
+                  }}
+                >
+                  {getAgeTextField("Age to retire", retireAge, setRetireAge)}
+                </Flexbox>
+              </Flexbox>
             </CardContent>
             <CardActions sx={{ justifyContent: "end" }}>
               <Button size="small">Add change</Button>
             </CardActions>
           </Card>
-          <Card>
-            <CardContent>
-              <Typography
-                sx={{ fontSize: 14 }}
-                color="text.secondary"
-                gutterBottom
-              >
-                Add expenses change card
-              </Typography>
-            </CardContent>
+          <Card variant="outlined">
+            <CardContent>{getText("Add expenses change card")}</CardContent>
           </Card>
         </FlexBoxSpaceAroundColumn>
       </FlexBoxSpaceAroundRow>
-      <FlexBoxSpaceAroundRow sx={{ backgroundColor: "#" + bgColors.beige }}>
-        <Card variant="outlined" sx={{ flexGrow: 3 }}>
+      <FlexBoxSpaceAroundRow>
+        <Card variant="outlined">
           <CardContent>
-            <Typography
-              sx={{ fontSize: 14 }}
-              color="text.secondary"
-              gutterBottom
-            >
-              GRAPH x2
-            </Typography>
+            {getTitle("Result")}
+
+            <Divider />
+            <V.VictoryChart>
+              <V.VictoryLine data={data} />
+              <V.VictoryScatter
+                data={data}
+                dataComponent={<ScatterPoint min={min} max={max} />}
+              />
+            </V.VictoryChart>
           </CardContent>
         </Card>
-        <Card variant="outlined" sx={{ flexGrow: 1 }}>
+        <Card variant="outlined" sx={{ maxWidth: "280px" }}>
           <CardContent>
-            <Typography
-              sx={{ fontSize: 14 }}
-              color="text.secondary"
-              gutterBottom
-            >
-              Information
-            </Typography>
+            {getText(
+              "You will have to save more to be able to retire at age " +
+                retireAge
+            )}
           </CardContent>
         </Card>
       </FlexBoxSpaceAroundRow>
@@ -209,7 +276,24 @@ function FireCalculator() {
         </V.VictoryChart>
       </FireBox>
     </FireWrapper>
-  );*/
+  );
+  
+  
+  
+                  <Slider
+                    sx={{ margin: "auto", width: "60%" }}
+                    aria-label="inflation"
+                    getAriaValueText={(value: number) => `${value}%`}
+                    valueLabelDisplay="auto"
+                    step={1}
+                    marks={getInflationMarks()}
+                    min={0}
+                    max={10}
+                    value={inflationPercent}
+                    onChange={(e: Event, newValue: number | number[]) =>
+                      setInflationPercent(newValue as number)
+                    }
+                  />*/
 }
 
 export default FireCalculator;

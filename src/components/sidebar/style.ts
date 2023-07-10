@@ -54,6 +54,6 @@ export const DrawerHeader = styled("div")(({ theme }) => ({
 export const ItemHover = styled(ListItem)(({ theme }) => ({
   cursor: "pointer",
   ":hover": {
-    backgroundColor: `#${bgColors.lighterPink}`,
+    backgroundColor: `#${bgColors.green}`,
   },
 }));

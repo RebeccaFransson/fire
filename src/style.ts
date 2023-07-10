@@ -8,24 +8,7 @@ import { expandedDrawerWidth, miniDrawerWidth } from "./styles/constants";
 
 
 export const AppWrapper = styledSC.div`
-    font-family: monospace;
-    text-align: center;
-    background-color: #${bgColors.lighterPink};   
-    height: 100%;
     
-    :nth-child(2) h2 {
-        background-color: #${bgColors.brightPink};
-    }
-    :nth-child(3) h2 {
-        background-color: #${bgColors.darkPink};
-    }
-    :nth-child(4) h2 {
-        background-color: #${bgColors.darkerPink};
-      }
-      
-    h2 {
-        margin: 0;
-      }
 `;
 
 export const ClickableTitle = styledSC.h2`
@@ -52,6 +35,7 @@ export const Main = styledMUI("main", {
 })<{
   open?: boolean;
 }>(({ theme, open }) => ({
+  background: "linear-gradient(to bottom,  #ffffff 0%,#fff7fb 100%)",
   flexGrow: 1,
   padding: theme.spacing(3),
   transition: theme.transitions.create("margin", {
