@@ -1,11 +1,4 @@
-import { BoxHeader, Flexbox, Card } from "../../style";
-import {
-  FlexBoxSpaceAroundColumn,
-  FlexBoxSpaceAroundRow,
-  StyledPoint,
-} from "./style";
-import * as V from "victory";
-import React, { useState, useEffect } from "react";
+import React, { useEffect, useState } from "react";
 import {
   Box,
   Button,
@@ -14,23 +7,19 @@ import {
   Divider,
   InputAdornment,
   Slider,
-  Stack,
   TextField,
-  Typography,
 } from "@mui/material";
-import { bgColors } from "../../styles/colors";
+import { Card, Flexbox } from "../../style";
 import { getAgeTextField } from "../extra/inputs";
 import { getText, getTitle } from "../extra/text";
+import {
+  FlexBoxSpaceAroundColumn,
+  FlexBoxSpaceAroundRow,
+} from "./style";
+import Chart from "react-apexcharts";
+import { ApexOptions } from "apexcharts";
+import { bgColors } from "../../styles/colors";
 
-const ScatterPoint = ({ x, y, datum, min, max }: any) => {
-  const colors = ["#FF8C94", "#FFAAA6", "#FFD3B5", "#DCEDC2", "#A8E6CE"];
-  const i = React.useMemo(() => {
-    return Math.floor(((datum.y - min) / (max - min)) * (colors.length - 1));
-  }, [datum, min, max]);
-  return <StyledPoint color={colors[i]} cx={x} cy={y} r={3} />;
-};
-
-type ChartData = { x: number; y: number };
 
 function FireCalculator() {
   const [monthlySavings, setMonthlySavings] = useState(100);
@@ -42,40 +31,118 @@ function FireCalculator() {
   const calculateFire = () => {
     const yearlySavings = monthlySavings * 12;
     const inflationPercentile = inflationPercent / 100;
-    const data: ChartData[] = [];
+    const moneyGrowth = [];
     let sumSavedMoney = yearlySavings;
     for (let index = age; index < retireAge; index++) {
       sumSavedMoney = sumSavedMoney * inflationPercentile + sumSavedMoney;
-      data.push({ x: index, y: sumSavedMoney });
+      
+      moneyGrowth.push(Math.round(sumSavedMoney));
     }
-    return data;
+    return moneyGrowth;
   };
 
-  const [data, setData] = useState<ChartData[]>([]);
+  const [moneyGrowth, setMoneyGrowth] = useState<number[]>([]);
 
   useEffect(() => {
-    setData(calculateFire());
+    setMoneyGrowth(calculateFire());
   }, []);
 
   useEffect(() => {
     const timer = setTimeout(() => {
-      setData(calculateFire());
+      setMoneyGrowth(calculateFire());
     }, 500);
     return () => clearTimeout(timer);
   }, [monthlySavings, age, retireAge, inflationPercent]);
 
-  const temperatures = data.map(({ y }) => y);
-  const min = Math.min(...temperatures);
-  const max = Math.max(...temperatures);
 
-  /*
-  const formattedData = data.map(({x, y}) => {
-    if(y < 10000 && y > 1000) return {x: x, y: `${Math.round(y/1000)}k`}
-    if(y < 100000 && y > 10000) return {x: x, y: `${Math.round(y/10000)} mil`}
-    return {x: x, y: y}
-  });
-  */
-  console.log(data[data.length - 1]);
+  console.log(moneyGrowth[moneyGrowth.length - 1]);
+
+  const data2 = {
+    options: {
+      chart: {
+        height: 350,
+        type: "line",
+        dropShadow: {
+          enabled: true,
+          color: "#000",
+          top: 10,
+          left: 7,
+          blur: 7,
+          opacity: 0.2,
+        },
+        toolbar: {
+          show: true,
+        },
+      },
+      colors: [bgColors.darkPink],
+      stroke: {
+        curve: "straight",
+      },
+      markers: {
+        size: 1,
+      },
+      yaxis: {
+        labels: {
+          formatter: (money) => {
+            if (money > 100000) return `$${Math.round(money/10000)/10}mil`;
+            if (money > 1000) return `$${Math.round(money/100)/10}k`;
+            return `$${money}`;
+          },
+        },
+      },
+      xaxis: {
+        categories: Array.apply(null, { length: retireAge + 1 } as unknown[])
+          .map(Number.call, Number)
+          .slice(age),
+        title: {
+          text: "Your age",
+        },
+      },
+      legend: {
+        position: "top",
+        horizontalAlign: "right",
+        floating: true,
+        offsetY: -25,
+        offsetX: -5,
+      },
+      annotations: {
+        yaxis: [
+          {
+            y: 10000,
+            borderColor: bgColors.green,
+            label: {
+              borderColor: bgColors.green,
+              style: {
+                color: "#000",
+                background: bgColors.lightGreen,
+              },
+              text: "Your first 100k!",
+            },
+          },
+        ],
+        xaxis: [
+          {
+            x: 37,
+            borderColor: bgColors.green,
+            label: {
+              borderColor: bgColors.green,
+              style: {
+                color: "#000",
+                background: bgColors.lightGreen,
+              },
+              text: "Your made a svanings change",
+            },
+          },
+        ],
+      },
+    } as ApexOptions,
+    series: [
+      {
+        name: "$",
+        data: moneyGrowth,
+      },
+    ],
+  };
 
   return (
     <>
@@ -201,21 +268,22 @@ function FireCalculator() {
         </FlexBoxSpaceAroundColumn>
       </FlexBoxSpaceAroundRow>
       <FlexBoxSpaceAroundRow>
-        <Card variant="outlined">
+        <Card variant="outlined" sx={{ flexGrow: 2 }}>
           <CardContent>
             {getTitle("Result")}
 
             <Divider />
-            <V.VictoryChart>
-              <V.VictoryLine data={data} />
-              <V.VictoryScatter
-                data={data}
-                dataComponent={<ScatterPoint min={min} max={max} />}
-              />
-            </V.VictoryChart>
+            <Chart
+              options={data2.options}
+              series={data2.series}
+              type="line"
+              width="100%"
+            />
           </CardContent>
         </Card>
-        <Card variant="outlined" sx={{ maxWidth: "280px" }}>
+      </FlexBoxSpaceAroundRow>
+      <FlexBoxSpaceAroundRow>
+        <Card variant="outlined" sx={{ flexGrow: 2 }}>
           <CardContent>
             {getText(
               "You will have to save more to be able to retire at age " +
