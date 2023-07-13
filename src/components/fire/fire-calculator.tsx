@@ -25,31 +25,40 @@ function FireCalculator() {
   const calculateFire = () => {
     const yearlySavings = monthlySavings * 12;
     const inflationPercentile = inflationPercent / 100;
-    const moneyGrowth = [];
+    const moneyData = [];
+    const ageData = [];
     let sumSavedMoney = yearlySavings;
-    for (let index = age; index < retireAge; index++) {
-      sumSavedMoney = sumSavedMoney * inflationPercentile + sumSavedMoney;
 
-      moneyGrowth.push(Math.round(sumSavedMoney));
+    for (let index = age + 1; index <= retireAge; ++index) {
+      moneyData.push(Math.round(sumSavedMoney));
+
+      sumSavedMoney =
+        sumSavedMoney * inflationPercentile + sumSavedMoney + yearlySavings;
+
+      ageData.push(index);
     }
-    return moneyGrowth;
+    return { moneyData, ageData };
   };
 
-  const [moneyGrowth, setMoneyGrowth] = useState<number[]>([]);
+  const [moneyData, setMoneyData] = useState<number[]>([]);
+  const [ageData, setAgeData] = useState<number[]>([]);
 
   useEffect(() => {
-    setMoneyGrowth(calculateFire());
+    const calculatedFire = calculateFire();
+    setMoneyData(calculatedFire.moneyData);
+    setAgeData(calculatedFire.ageData);
   }, []);
 
   useEffect(() => {
     const timer = setTimeout(() => {
-      setMoneyGrowth(calculateFire());
+      const calculatedFire = calculateFire();
+      setMoneyData(calculatedFire.moneyData);
+      setAgeData(calculatedFire.ageData);
     }, 500);
     return () => clearTimeout(timer);
   }, [monthlySavings, age, retireAge, inflationPercent]);
 
-  console.log(moneyGrowth[moneyGrowth.length - 1]);
-
+  //console.log(moneyData[moneyData.length - 1]);
 
   return (
     <>
@@ -180,6 +189,7 @@ function FireCalculator() {
             {getTitle("Result")}
 
             <Divider />
+            <Chart yData={moneyData} xData={ageData}></Chart>
           </CardContent>
         </Card>
       </FlexBoxSpaceAroundRow>
