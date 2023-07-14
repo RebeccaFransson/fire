@@ -31,7 +31,7 @@ function Chart({yData, xData}: Props) {
     yaxis: {
       labels: {
         formatter: (money: number) => {
-          if (money > 100000) return `$${Math.round(money / 10000) / 10}mil`;
+          if (money > 1000000) return `$${Math.round(money / 100000) / 10}mil`;
           if (money > 1000) return `$${Math.round(money / 100) / 10}k`;
           return `$${money}`;
         },
@@ -53,7 +53,7 @@ function Chart({yData, xData}: Props) {
     annotations: {
       yaxis: [
         {
-          y: 10000,
+          y: 500000,
           borderColor: bgColors.green,
           strokeDashArray: 0,
           label: {
@@ -62,7 +62,7 @@ function Chart({yData, xData}: Props) {
               color: "#000",
               background: bgColors.lightGreen,
             },
-            text: "Your first 100k!",
+            text: "Half a million",
           },
         },
       ],

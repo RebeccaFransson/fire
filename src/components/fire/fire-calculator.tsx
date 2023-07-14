@@ -16,20 +16,24 @@ import { FlexBoxSpaceAroundColumn, FlexBoxSpaceAroundRow } from "./style";
 import Chart from "./chart";
 
 function FireCalculator() {
-  const [monthlySavings, setMonthlySavings] = useState(100);
+  const medianLifeLength = 85;
+  const [monthlySavings, setMonthlySavings] = useState(1000);
   const [monthlyExpenses, setMonthlyExpenses] = useState(3000);
   const [age, setAge] = useState(30);
   const [retireAge, setRetireAge] = useState(65);
   const [inflationPercent, setInflationPercent] = useState(7);
 
-  const calculateFire = () => {
+  const [moneyData, setMoneyData] = useState<number[]>([]);
+  const [ageData, setAgeData] = useState<number[]>([]);
+
+  const calculateFire = (): { moneyData: number[]; ageData: number[] } => {
     const yearlySavings = monthlySavings * 12;
     const inflationPercentile = inflationPercent / 100;
-    const moneyData = [];
-    const ageData = [];
+    const moneyData = [],
+      ageData = [];
     let sumSavedMoney = yearlySavings;
 
-    for (let index = age + 1; index <= retireAge; ++index) {
+    for (let index = age + 1; index <= medianLifeLength; ++index) {
       moneyData.push(Math.round(sumSavedMoney));
 
       sumSavedMoney =
@@ -40,15 +44,89 @@ function FireCalculator() {
     return { moneyData, ageData };
   };
 
-  const [moneyData, setMoneyData] = useState<number[]>([]);
-  const [ageData, setAgeData] = useState<number[]>([]);
+  const calculateIdealRetirementAge = (
+    exampleRetireAge: number,
+    maximumSavedMoney?: number
+  ): any => {
+    const maxSavedMoney =
+      maximumSavedMoney ?? moneyData[exampleRetireAge - age];
+    const yearlyExpenses = monthlyExpenses * 12;
+    let yearsToLiveOnSavedMoney = Math.round(maxSavedMoney / yearlyExpenses);
+    let yearsThatNeedMoney = Math.round(medianLifeLength - exampleRetireAge);
 
+    console.log("-------------------");
+    console.log("moneyData", moneyData);
+    console.log("exampleRetireAge", exampleRetireAge);
+    console.log("maxSavedMoney", maxSavedMoney);
+    console.log("yearsToLiveOnSavedMoney", yearsToLiveOnSavedMoney);
+    console.log("yearsThatNeedMoney", yearsThatNeedMoney);
+    console.log(
+      `can retire earlier than ${exampleRetireAge}? `,
+      yearsToLiveOnSavedMoney > yearsThatNeedMoney
+    );
+    console.log(
+      `need to retire later than ${exampleRetireAge}? `,
+      yearsToLiveOnSavedMoney < yearsThatNeedMoney
+    );
+
+    // Perfect age to retire
+    if (yearsToLiveOnSavedMoney + 1 === yearsThatNeedMoney ||
+      yearsToLiveOnSavedMoney - 1 === yearsThatNeedMoney) {
+      console.log("You can comfortably retire at age " + exampleRetireAge);
+      return "You can comfortably retire at age " + exampleRetireAge;
+    }
+    // Can retire earlier
+    else if (yearsToLiveOnSavedMoney > yearsThatNeedMoney) {
+      console.log("re-calculate - retire earlier");
+
+      const yearsToRetireEarlier = Math.round(
+        (yearsToLiveOnSavedMoney - yearsThatNeedMoney) / 2
+      );
+      console.log("yearsToRetireEarlier", yearsToRetireEarlier);
+
+      // Update values with new retire age and money saved
+      const updatedRetireAge = exampleRetireAge - yearsToRetireEarlier;
+      console.log("updatedRetireAge", updatedRetireAge);
+      calculateIdealRetirementAge(updatedRetireAge, moneyData[updatedRetireAge - age]);
+      return null;
+    }
+    // Needs to retire later
+    else if (yearsToLiveOnSavedMoney < yearsThatNeedMoney) {
+      console.log("re-calculate - retire later");
+
+      const yearsToRetireLater = Math.round(
+        (yearsThatNeedMoney - yearsToLiveOnSavedMoney) / 2
+      );
+      console.log("yearsToRetireLater", yearsToRetireLater);
+
+      // Update values with new retire age and money saved
+      const updatedRetireAge = exampleRetireAge + yearsToRetireLater;
+      console.log("updatedRetireAge", updatedRetireAge);
+
+      calculateIdealRetirementAge(updatedRetireAge, moneyData[updatedRetireAge - age]);
+      return null;
+    }
+  };
+
+  /**
+   * Calculate the data for the graph on load.
+   */
   useEffect(() => {
     const calculatedFire = calculateFire();
+    //console.log(hejsan(calculatedFire.moneyData, retireAge));
     setMoneyData(calculatedFire.moneyData);
     setAgeData(calculatedFire.ageData);
+    console.log(calculateIdealRetirementAge(retireAge));
   }, []);
 
+  useEffect(() => {
+    console.log(calculateIdealRetirementAge(retireAge));
+  }, [moneyData, ageData]);
+
+  /**
+   * Whenever [monthlySavings, age, retireAge, inflationPercent] change
+   * the data for the graph will re-calculate on the new values after 0,5 second.
+   */
   useEffect(() => {
     const timer = setTimeout(() => {
       const calculatedFire = calculateFire();
