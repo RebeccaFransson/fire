@@ -31,8 +31,8 @@ function Chart({yData, xData}: Props) {
     yaxis: {
       labels: {
         formatter: (money: number) => {
-          if (money > 1000000) return `$${Math.round(money / 100000) / 10}mil`;
-          if (money > 1000) return `$${Math.round(money / 100) / 10}k`;
+          if (money >= 1000000) return `$${Math.round(money / 100000) / 10}mil`;
+          if (money >= 1000) return `$${Math.round(money / 100) / 10}k`;
           return `$${money}`;
         },
       },

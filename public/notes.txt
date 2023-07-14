@@ -1,0 +1,7 @@
+Finns det ett bättre sätt att räkna ut en bra pensions ålder?
+Tex, räkna ut hur mycket pengar som behövs för att kostnaden, för hela start - slut
+och ta summen de har sparat ihop, och göra något med det? Sätt ihop och sen dela på två? nää..?
+
+
+
+Gör om calculateIdealRetirementAge till att använda en while loop istället
