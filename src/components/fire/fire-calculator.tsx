@@ -35,7 +35,7 @@ function FireCalculator() {
     let sumSavedMoney = yearlySavings;
 
     // Add savings to data, graph going up
-    for (let index = age + 1; index <= retireAge; ++index) {
+    for (let index = age + 1; index <= medianLifeLength; ++index) {
       sumSavedMoney =
         sumSavedMoney * inflationPercentile + sumSavedMoney + yearlySavings;
 
@@ -45,15 +45,72 @@ function FireCalculator() {
     }
 
     // Add expenses to data, graph going down
-    for (let index = retireAge + 1; index <= medianLifeLength; ++index) {
+    /*for (let index = retireAge + 1; index <= medianLifeLength; ++index) {
       sumSavedMoney =
-        (sumSavedMoney * inflationPercentile + sumSavedMoney) - yearlyExpenses;
+        sumSavedMoney * inflationPercentile + sumSavedMoney - yearlyExpenses;
 
       moneyData.push(Math.round(sumSavedMoney));
 
       ageData.push(index);
-    }
+    }*/
     return { moneyData, ageData };
+  };
+
+  const calculateIdealRetirementAgeWhileLoop = () => {
+    let hej = 1;
+    // Start values, for user inpuuted retirement age
+    let exampleRetireAge = retireAge;
+    let maxSavedMoney = moneyData[retireAge - age];
+    const yearlyExpenses = monthlyExpenses * 12;
+
+    while (hej < 100) {
+      let yearsThatNeedMoney = Math.round(medianLifeLength - exampleRetireAge);
+      let yearsToLiveOnSavedMoney = Math.round(maxSavedMoney / yearlyExpenses);
+      console.log("-------------------");
+      console.log("while loop number ", hej);
+
+      console.log("-------------------");
+      console.log("exampleRetireAge", exampleRetireAge);
+      console.log("maxSavedMoney", maxSavedMoney);
+      console.log("yearsToLiveOnSavedMoney", yearsToLiveOnSavedMoney);
+      console.log("yearsThatNeedMoney", yearsThatNeedMoney);
+
+      if (
+        yearsToLiveOnSavedMoney + 1 === yearsThatNeedMoney ||
+        yearsToLiveOnSavedMoney - 1 === yearsThatNeedMoney
+      ) {
+        console.log(
+          "DONE! You can comfortably retire at age " + exampleRetireAge
+        );
+        return "DONE! You can comfortably retire at age " + exampleRetireAge;
+      }
+      // Can retire earlier
+      else if (yearsToLiveOnSavedMoney > yearsThatNeedMoney) {
+        const yearsToRetireEarlier = Math.round(
+          (yearsToLiveOnSavedMoney - yearsThatNeedMoney) / 2
+        );
+        const updatedRetireAge = exampleRetireAge - yearsToRetireEarlier;
+        console.log(
+          `re-calculate - retire earlier, remove ${yearsToRetireEarlier} years and try with ${updatedRetireAge}`
+        );
+        exampleRetireAge = updatedRetireAge;
+        maxSavedMoney = moneyData[updatedRetireAge - age];
+      }
+      // Needs to retire later
+      else if (yearsToLiveOnSavedMoney < yearsThatNeedMoney) {
+        const yearsToRetireLater = Math.round(
+          (yearsThatNeedMoney - yearsToLiveOnSavedMoney) / 2
+        );
+        const updatedRetireAge = exampleRetireAge + yearsToRetireLater;
+        console.log(
+          `re-calculate - retire later, add ${yearsToRetireLater} years and try with ${updatedRetireAge}`
+        );
+        exampleRetireAge = updatedRetireAge;
+        maxSavedMoney = moneyData[updatedRetireAge - age];
+      }
+
+      hej++;
+    }
   };
 
   const calculateIdealRetirementAge = (
@@ -74,7 +131,7 @@ function FireCalculator() {
     console.log("yearsThatNeedMoney", yearsThatNeedMoney);
     */
 
-    return new Promise((res, rej) => {
+    return new Promise(async (res, rej) => {
       // Perfect age to retire
       if (
         yearsToLiveOnSavedMoney + 1 === yearsThatNeedMoney ||
@@ -90,7 +147,7 @@ function FireCalculator() {
         );
         const updatedRetireAge = exampleRetireAge - yearsToRetireEarlier;
         //console.log(`re-calculate - retire earlier, remove ${yearsToRetireEarlier} years and try with ${updatedRetireAge}`);
-        calculateIdealRetirementAge(
+        await calculateIdealRetirementAge(
           updatedRetireAge,
           moneyData[updatedRetireAge - age]
         );
@@ -102,7 +159,7 @@ function FireCalculator() {
         );
         const updatedRetireAge = exampleRetireAge + yearsToRetireLater;
         //console.log(`re-calculate - retire later, add ${yearsToRetireLater} years and try with ${updatedRetireAge}`);
-        calculateIdealRetirementAge(
+        await calculateIdealRetirementAge(
           updatedRetireAge,
           moneyData[updatedRetireAge - age]
         );
@@ -118,13 +175,19 @@ function FireCalculator() {
     //console.log(hejsan(calculatedFire.moneyData, retireAge));
     setMoneyData(calculatedFire.moneyData);
     setAgeData(calculatedFire.ageData);
-    console.log(calculateIdealRetirementAge(retireAge));
+    calculateIdealRetirementAgeWhileLoop();
   }, []);
 
   useEffect(() => {
+    /*let hej = null;
     (async () => {
-      console.log(await calculateIdealRetirementAge(retireAge));
+      hej = await calculateIdealRetirementAge(retireAge);
+      console.log(hej);
     })();
+    console.log(hej);*/
+    calculateIdealRetirementAge(retireAge).then((answer: string) =>
+      console.log(answer)
+    );
   }, [moneyData, ageData]);
 
   /**
