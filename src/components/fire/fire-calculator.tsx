@@ -15,6 +15,18 @@ import { getText, getTitle } from "../extra/text";
 import { FlexBoxSpaceAroundColumn, FlexBoxSpaceAroundRow } from "./style";
 import Chart from "./chart";
 
+enum ResultEnum {
+  EARLIER,
+  LATER,
+  IDEAL,
+}
+
+type SavingsChange = {
+  index: number;
+  atAge: number;
+  savingsSum: number;
+};
+
 function FireCalculator() {
   const medianLifeLength = 85;
   const [monthlySavings, setMonthlySavings] = useState(1000);
@@ -23,122 +35,79 @@ function FireCalculator() {
   const [retireAge, setRetireAge] = useState(50);
   const [inflationPercent, setInflationPercent] = useState(7);
 
+  const [moneyGrowData, setMoneyGrowData] = useState<number[]>([]);
   const [moneyData, setMoneyData] = useState<number[]>([]);
   const [ageData, setAgeData] = useState<number[]>([]);
 
-  const calculateFire = (): { moneyData: number[]; ageData: number[] } => {
+  const [retirementInformation, setRetirementInformation] =
+    useState<ResultEnum | null>(null);
+
+  const [savingChanges, setSavingChanges] = useState<SavingsChange[]>([]);
+
+  const calculateFire = (): {
+    moneyData: number[];
+    moneyGrowData: number[];
+    ageData: number[];
+  } => {
     const yearlySavings = monthlySavings * 12;
     const yearlyExpenses = monthlyExpenses * 12;
     const inflationPercentile = inflationPercent / 100;
-    const moneyData = [],
+    const moneyGrowData = [],
+      moneyData = [],
       ageData = [];
     let sumSavedMoney = yearlySavings;
+    let sumSavedMoneyWithExpenses = yearlyExpenses;
 
     // Add savings to data, graph going up
     for (let index = age + 1; index <= medianLifeLength; ++index) {
       sumSavedMoney =
         sumSavedMoney * inflationPercentile + sumSavedMoney + yearlySavings;
+      moneyGrowData.push(Math.round(sumSavedMoney));
 
-      moneyData.push(Math.round(sumSavedMoney));
+      if (index === retireAge) {
+        sumSavedMoneyWithExpenses = sumSavedMoney;
+        moneyData.push(Math.round(sumSavedMoney));
+      } else if (index > retireAge) {
+        const newSavedMoneyAfterYearlyExpenses =
+          sumSavedMoneyWithExpenses - yearlyExpenses;
+        sumSavedMoneyWithExpenses =
+          newSavedMoneyAfterYearlyExpenses * inflationPercentile +
+          newSavedMoneyAfterYearlyExpenses;
+
+        moneyData.push(Math.round(sumSavedMoneyWithExpenses));
+      } else {
+        moneyData.push(Math.round(sumSavedMoney));
+      }
 
       ageData.push(index);
     }
-
-    // Add expenses to data, graph going down
-    /*for (let index = retireAge + 1; index <= medianLifeLength; ++index) {
-      sumSavedMoney =
-        sumSavedMoney * inflationPercentile + sumSavedMoney - yearlyExpenses;
-
-      moneyData.push(Math.round(sumSavedMoney));
-
-      ageData.push(index);
-    }*/
-    return { moneyData, ageData };
+    return { moneyData, moneyGrowData, ageData };
   };
 
-  const calculateIdealRetirementAgeWhileLoop = () => {
-    let hej = 1;
+  const calculateIdealRetirementAgeWhileLoop = (): number => {
+    let tries = 0;
     // Start values, for user inpuuted retirement age
     let exampleRetireAge = retireAge;
-    let maxSavedMoney = moneyData[retireAge - age];
+    let maxSavedMoney = moneyGrowData[retireAge - age];
     const yearlyExpenses = monthlyExpenses * 12;
 
-    while (hej < 100) {
+    while (tries < 100) {
       let yearsThatNeedMoney = Math.round(medianLifeLength - exampleRetireAge);
       let yearsToLiveOnSavedMoney = Math.round(maxSavedMoney / yearlyExpenses);
-      console.log("-------------------");
-      console.log("while loop number ", hej);
 
+      /*
       console.log("-------------------");
       console.log("exampleRetireAge", exampleRetireAge);
       console.log("maxSavedMoney", maxSavedMoney);
       console.log("yearsToLiveOnSavedMoney", yearsToLiveOnSavedMoney);
       console.log("yearsThatNeedMoney", yearsThatNeedMoney);
+      */
 
       if (
         yearsToLiveOnSavedMoney + 1 === yearsThatNeedMoney ||
         yearsToLiveOnSavedMoney - 1 === yearsThatNeedMoney
       ) {
-        console.log(
-          "DONE! You can comfortably retire at age " + exampleRetireAge
-        );
-        return "DONE! You can comfortably retire at age " + exampleRetireAge;
-      }
-      // Can retire earlier
-      else if (yearsToLiveOnSavedMoney > yearsThatNeedMoney) {
-        const yearsToRetireEarlier = Math.round(
-          (yearsToLiveOnSavedMoney - yearsThatNeedMoney) / 2
-        );
-        const updatedRetireAge = exampleRetireAge - yearsToRetireEarlier;
-        console.log(
-          `re-calculate - retire earlier, remove ${yearsToRetireEarlier} years and try with ${updatedRetireAge}`
-        );
-        exampleRetireAge = updatedRetireAge;
-        maxSavedMoney = moneyData[updatedRetireAge - age];
-      }
-      // Needs to retire later
-      else if (yearsToLiveOnSavedMoney < yearsThatNeedMoney) {
-        const yearsToRetireLater = Math.round(
-          (yearsThatNeedMoney - yearsToLiveOnSavedMoney) / 2
-        );
-        const updatedRetireAge = exampleRetireAge + yearsToRetireLater;
-        console.log(
-          `re-calculate - retire later, add ${yearsToRetireLater} years and try with ${updatedRetireAge}`
-        );
-        exampleRetireAge = updatedRetireAge;
-        maxSavedMoney = moneyData[updatedRetireAge - age];
-      }
-
-      hej++;
-    }
-  };
-
-  const calculateIdealRetirementAge = (
-    exampleRetireAge: number,
-    maximumSavedMoney?: number
-  ): any => {
-    const maxSavedMoney =
-      maximumSavedMoney ?? moneyData[exampleRetireAge - age];
-    const yearlyExpenses = monthlyExpenses * 12;
-    let yearsToLiveOnSavedMoney = Math.round(maxSavedMoney / yearlyExpenses);
-    let yearsThatNeedMoney = Math.round(medianLifeLength - exampleRetireAge);
-
-    /*
-    console.log("-------------------");
-    console.log("exampleRetireAge", exampleRetireAge);
-    console.log("maxSavedMoney", maxSavedMoney);
-    console.log("yearsToLiveOnSavedMoney", yearsToLiveOnSavedMoney);
-    console.log("yearsThatNeedMoney", yearsThatNeedMoney);
-    */
-
-    return new Promise(async (res, rej) => {
-      // Perfect age to retire
-      if (
-        yearsToLiveOnSavedMoney + 1 === yearsThatNeedMoney ||
-        yearsToLiveOnSavedMoney - 1 === yearsThatNeedMoney
-      ) {
-        //console.log("DONE! You can comfortably retire at age " + exampleRetireAge);
-        res("You can comfortably retire at age " + exampleRetireAge);
+        return exampleRetireAge;
       }
       // Can retire earlier
       else if (yearsToLiveOnSavedMoney > yearsThatNeedMoney) {
@@ -147,10 +116,8 @@ function FireCalculator() {
         );
         const updatedRetireAge = exampleRetireAge - yearsToRetireEarlier;
         //console.log(`re-calculate - retire earlier, remove ${yearsToRetireEarlier} years and try with ${updatedRetireAge}`);
-        await calculateIdealRetirementAge(
-          updatedRetireAge,
-          moneyData[updatedRetireAge - age]
-        );
+        exampleRetireAge = updatedRetireAge;
+        maxSavedMoney = moneyGrowData[updatedRetireAge - age];
       }
       // Needs to retire later
       else if (yearsToLiveOnSavedMoney < yearsThatNeedMoney) {
@@ -159,12 +126,12 @@ function FireCalculator() {
         );
         const updatedRetireAge = exampleRetireAge + yearsToRetireLater;
         //console.log(`re-calculate - retire later, add ${yearsToRetireLater} years and try with ${updatedRetireAge}`);
-        await calculateIdealRetirementAge(
-          updatedRetireAge,
-          moneyData[updatedRetireAge - age]
-        );
+        exampleRetireAge = updatedRetireAge;
+        maxSavedMoney = moneyGrowData[updatedRetireAge - age];
       }
-    });
+      tries++;
+    }
+    return 0;
   };
 
   /**
@@ -174,21 +141,24 @@ function FireCalculator() {
     const calculatedFire = calculateFire();
     //console.log(hejsan(calculatedFire.moneyData, retireAge));
     setMoneyData(calculatedFire.moneyData);
+    setMoneyGrowData(calculatedFire.moneyGrowData);
     setAgeData(calculatedFire.ageData);
-    calculateIdealRetirementAgeWhileLoop();
   }, []);
 
-  useEffect(() => {
-    /*let hej = null;
-    (async () => {
-      hej = await calculateIdealRetirementAge(retireAge);
-      console.log(hej);
-    })();
-    console.log(hej);*/
-    calculateIdealRetirementAge(retireAge).then((answer: string) =>
-      console.log(answer)
-    );
-  }, [moneyData, ageData]);
+  /*useEffect(() => {
+    console.log("changed money and age data");
+    const idealRetirementAge = calculateIdealRetirementAgeWhileLoop();
+
+    if (idealRetirementAge === retireAge)
+      setRetirementInformation(ResultEnum.IDEAL);
+    if (idealRetirementAge < retireAge)
+      setRetirementInformation(ResultEnum.LATER);
+    if (idealRetirementAge > retireAge)
+      setRetirementInformation(ResultEnum.EARLIER);
+
+    //console.warn(retireAge);
+    //console.warn(idealRetirementAge);
+  }, [moneyData, ageData]);*/
 
   /**
    * Whenever [monthlySavings, age, retireAge, inflationPercent] change
@@ -201,9 +171,13 @@ function FireCalculator() {
       setAgeData(calculatedFire.ageData);
     }, 500);
     return () => clearTimeout(timer);
-  }, [monthlySavings, age, retireAge, inflationPercent]);
+  }, [monthlySavings, monthlyExpenses, age, retireAge, inflationPercent]);
 
-  //console.log(moneyData[moneyData.length - 1]);
+  const addSavningsChange = () => {
+    console.log("add change!")
+    setSavingChanges([...savingChanges, { atAge: 35, index: savingChanges.length, savingsSum: 1100 }]);
+    console.log(savingChanges)
+  };
 
   return (
     <>
@@ -270,15 +244,20 @@ function FireCalculator() {
               </Flexbox>
             </CardContent>
             <CardActions sx={{ justifyContent: "end" }}>
-              <Button size="small">Add change</Button>
+              <Button size="small" onClick={addSavningsChange}>
+                Add change
+              </Button>
             </CardActions>
           </Card>
-          <Card variant="outlined">
-            <CardContent>{getText("Add savings change card")}</CardContent>
-          </Card>
-          <Card variant="outlined">
-            <CardContent>{getText("Add savings change card")}</CardContent>
-          </Card>
+          {savingChanges.map((change) => (
+            <Card variant="outlined" key={change.index}>
+              <CardContent>
+                {getText(
+                  `at ${change.atAge} years, change saving sum to ${change.savingsSum}`
+                )}
+              </CardContent>
+            </Card>
+          ))}
         </FlexBoxSpaceAroundColumn>
         <FlexBoxSpaceAroundColumn sx={{ flexGrow: 1 }}>
           <Card variant="outlined">
@@ -331,6 +310,25 @@ function FireCalculator() {
       <FlexBoxSpaceAroundRow>
         <Card variant="outlined" sx={{ flexGrow: 2 }}>
           <CardContent>
+            {retirementInformation === ResultEnum.IDEAL
+              ? getTitle(`${retireAge} is the ideal age for you to retire`)
+              : null}
+            {retirementInformation === ResultEnum.LATER
+              ? getTitle(
+                  `Your need to retire later than ${retireAge} to live upon your saved money.`
+                )
+              : null}
+            {retirementInformation === ResultEnum.EARLIER
+              ? getTitle(
+                  `You have more money, you can retire earlier than ${retireAge} and still live upon your saved money.`
+                )
+              : null}
+          </CardContent>
+        </Card>
+      </FlexBoxSpaceAroundRow>
+      <FlexBoxSpaceAroundRow>
+        <Card variant="outlined" sx={{ flexGrow: 2 }}>
+          <CardContent>
             {getTitle("Result")}
 
             <Divider />
@@ -338,86 +336,8 @@ function FireCalculator() {
           </CardContent>
         </Card>
       </FlexBoxSpaceAroundRow>
-      <FlexBoxSpaceAroundRow>
-        <Card variant="outlined" sx={{ flexGrow: 2 }}>
-          <CardContent>
-            {getText(
-              "You will have to save more to be able to retire at age " +
-                retireAge
-            )}
-          </CardContent>
-        </Card>
-      </FlexBoxSpaceAroundRow>
     </>
   );
-
-  /*return (
-    <FireWrapper>
-      <Card variant="outlined">hi there</Card>
-      <FireBox>
-        <BoxHeader>Input values</BoxHeader>
-        <label>
-          Monthly savings{" "}
-          <input
-            name="monthlySavings"
-            value={monthlySavings}
-            onChange={(e) => setMonthlySavings(parseInt(e.target.value))}
-          />
-        </label>
-        <label>
-          Your age{" "}
-          <input
-            name="age"
-            value={age}
-            onChange={(e) => setAge(parseInt(e.target.value))}
-          />
-        </label>
-        <label>
-          Retire age{" "}
-          <input
-            name="retireAge"
-            value={retireAge}
-            onChange={(e) => setRetireAge(parseInt(e.target.value))}
-          />
-        </label>
-        <label>
-          Inflation percent{" "}
-          <input
-            name="inflationPercent"
-            value={inflationPercent}
-            onChange={(e) => setInflationPercent(parseInt(e.target.value))}
-          />
-          %
-        </label>
-      </FireBox>
-      <FireBox>
-        <V.VictoryChart>
-          <V.VictoryLine data={data} />
-          <V.VictoryScatter
-            data={data}
-            dataComponent={<ScatterPoint min={min} max={max} />}
-          />
-        </V.VictoryChart>
-      </FireBox>
-    </FireWrapper>
-  );
-  
-  
-  
-                  <Slider
-                    sx={{ margin: "auto", width: "60%" }}
-                    aria-label="inflation"
-                    getAriaValueText={(value: number) => `${value}%`}
-                    valueLabelDisplay="auto"
-                    step={1}
-                    marks={getInflationMarks()}
-                    min={0}
-                    max={10}
-                    value={inflationPercent}
-                    onChange={(e: Event, newValue: number | number[]) =>
-                      setInflationPercent(newValue as number)
-                    }
-                  />*/
 }
 
 export default FireCalculator;
