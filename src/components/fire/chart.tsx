@@ -2,9 +2,29 @@ import React, { useEffect, useState } from "react";
 import { ApexOptions } from "apexcharts";
 import ApexChart from "react-apexcharts";
 import { bgColors } from "../../styles/colors";
+import { SavingsChange } from "./fire-calculator";
 
-type Props = {yData: number[], xData: number[]} 
-function Chart({yData, xData}: Props) {
+type Props = {
+  yData: number[];
+  xData: number[];
+  savingChanges: SavingsChange[];
+};
+function Chart({ yData, xData, savingChanges }: Props) {
+  const savingsChangeAnnotations = savingChanges.map((change) => {
+    return {
+      x: change.age,
+      borderColor: bgColors.green,
+      label: {
+        borderColor: bgColors.green,
+        style: {
+          color: "#000",
+          background: bgColors.lightGreen,
+        },
+        text: "Savings Change: " + change.monthlySavings,
+      },
+    };
+  });
+
   const options = {
     chart: {
       height: 350,
@@ -66,20 +86,7 @@ function Chart({yData, xData}: Props) {
           },
         },
       ],
-      xaxis: [
-        {
-          x: 37,
-          borderColor: bgColors.green,
-          label: {
-            borderColor: bgColors.green,
-            style: {
-              color: "#000",
-              background: bgColors.lightGreen,
-            },
-            text: "Your made a savings change",
-          },
-        },
-      ],
+      xaxis: savingsChangeAnnotations,
     },
   } as ApexOptions;
 
@@ -90,7 +97,9 @@ function Chart({yData, xData}: Props) {
     },
   ];
 
-  return <ApexChart options={options} series={series} type="line" width="100%" />;
+  return (
+    <ApexChart options={options} series={series} type="line" width="100%" />
+  );
 }
 
 export default Chart;

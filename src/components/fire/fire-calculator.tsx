@@ -21,10 +21,10 @@ enum ResultEnum {
   IDEAL,
 }
 
-type SavingsChange = {
+export type SavingsChange = {
   index: number;
-  atAge: number;
-  savingsSum: number;
+  age: number;
+  monthlySavings: number;
 };
 
 function FireCalculator() {
@@ -49,7 +49,7 @@ function FireCalculator() {
     moneyGrowData: number[];
     ageData: number[];
   } => {
-    const yearlySavings = monthlySavings * 12;
+    let yearlySavings = monthlySavings * 12;
     const yearlyExpenses = monthlyExpenses * 12;
     const inflationPercentile = inflationPercent / 100;
     const moneyGrowData = [],
@@ -57,17 +57,26 @@ function FireCalculator() {
       ageData = [];
     let sumSavedMoney = yearlySavings;
     let sumSavedMoneyWithExpenses = yearlyExpenses;
+    let indexForSavingChanges = 0;
 
     // Add savings to data, graph going up
-    for (let index = age + 1; index <= medianLifeLength; ++index) {
+    for (let indexAge = age; indexAge <= medianLifeLength; indexAge++) {
+
+      // Change yearly savings with a savings change
+      if(savingChanges[indexForSavingChanges] && indexAge === savingChanges[indexForSavingChanges].age){
+        yearlySavings = savingChanges[indexForSavingChanges].monthlySavings * 12;
+        indexForSavingChanges++;
+      }
+
       sumSavedMoney =
         sumSavedMoney * inflationPercentile + sumSavedMoney + yearlySavings;
       moneyGrowData.push(Math.round(sumSavedMoney));
 
-      if (index === retireAge) {
+      // Add data to the graph with expenses
+      if (indexAge === retireAge) {
         sumSavedMoneyWithExpenses = sumSavedMoney;
         moneyData.push(Math.round(sumSavedMoney));
-      } else if (index > retireAge) {
+      } else if (indexAge > retireAge) {
         const newSavedMoneyAfterYearlyExpenses =
           sumSavedMoneyWithExpenses - yearlyExpenses;
         sumSavedMoneyWithExpenses =
@@ -79,7 +88,7 @@ function FireCalculator() {
         moneyData.push(Math.round(sumSavedMoney));
       }
 
-      ageData.push(index);
+      ageData.push(indexAge);
     }
     return { moneyData, moneyGrowData, ageData };
   };
@@ -171,12 +180,38 @@ function FireCalculator() {
       setAgeData(calculatedFire.ageData);
     }, 500);
     return () => clearTimeout(timer);
-  }, [monthlySavings, monthlyExpenses, age, retireAge, inflationPercent]);
+  }, [monthlySavings, monthlyExpenses, age, retireAge, inflationPercent, savingChanges]);
 
   const addSavningsChange = () => {
-    console.log("add change!")
-    setSavingChanges([...savingChanges, { atAge: 35, index: savingChanges.length, savingsSum: 1100 }]);
-    console.log(savingChanges)
+    const latestSavingsChangeAge = savingChanges[savingChanges.length - 1] ? savingChanges[savingChanges.length - 1].age : age;
+    setSavingChanges([
+      ...savingChanges,
+      {
+        age: latestSavingsChangeAge + 1,
+        index: savingChanges.length,
+        monthlySavings: monthlySavings,
+      },
+    ]);
+  };
+
+  const saveSavningsChange = ({
+    index,
+    age,
+    savingsSum,
+  }: {
+    index: number;
+    age?: number;
+    savingsSum?: number;
+  }) => {
+    setSavingChanges(
+      savingChanges.map((change) => {
+        if (change.index === index) {
+          if (age) return { ...change, age: age };
+          if (savingsSum) return { ...change, monthlySavings: savingsSum };
+        }
+        return change;
+      })
+    );
   };
 
   return (
@@ -209,7 +244,6 @@ function FireCalculator() {
                 >
                   <TextField
                     sx={{ width: "100px" }}
-                    id="standard-basic"
                     label="Save each month"
                     variant="standard"
                     defaultValue={monthlySavings}
@@ -253,8 +287,29 @@ function FireCalculator() {
             <Card variant="outlined" key={change.index}>
               <CardContent>
                 {getText(
-                  `at ${change.atAge} years, change saving sum to ${change.savingsSum}`
+                  `at ${change.age} years, change saving sum to ${change.monthlySavings}`
                 )}
+                {getAgeTextField("When", change.age, (age) => {
+                  saveSavningsChange({ index: change.index, age: age });
+                })}
+                <TextField
+                  sx={{ width: "100px" }}
+                  label="New savings"
+                  variant="standard"
+                  defaultValue={change.monthlySavings}
+                  size="small"
+                  onChange={(e) =>
+                    saveSavningsChange({
+                      index: change.index,
+                      savingsSum: parseInt(e.target.value),
+                    })
+                  }
+                  InputProps={{
+                    startAdornment: (
+                      <InputAdornment position="start">$</InputAdornment>
+                    ),
+                  }}
+                />
               </CardContent>
             </Card>
           ))}
@@ -332,7 +387,11 @@ function FireCalculator() {
             {getTitle("Result")}
 
             <Divider />
-            <Chart yData={moneyData} xData={ageData}></Chart>
+            <Chart
+              yData={moneyData}
+              xData={ageData}
+              savingChanges={savingChanges}
+            ></Chart>
           </CardContent>
         </Card>
       </FlexBoxSpaceAroundRow>
