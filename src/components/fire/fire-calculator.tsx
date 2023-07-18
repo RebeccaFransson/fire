@@ -5,12 +5,12 @@ import {
   CardActions,
   CardContent,
   Divider,
-  InputAdornment,
+  IconButton,
   Slider,
-  TextField,
 } from "@mui/material";
+import CloseIcon from "@mui/icons-material/Close";
 import { Card, Flexbox } from "../../style";
-import { getAgeTextField } from "../extra/inputs";
+import { getAgeTextField, getDollarTextField } from "../extra/inputs";
 import { getText, getTitle } from "../extra/text";
 import { FlexBoxSpaceAroundColumn, FlexBoxSpaceAroundRow } from "./style";
 import Chart from "./chart";
@@ -58,13 +58,18 @@ function FireCalculator() {
     let sumSavedMoney = yearlySavings;
     let sumSavedMoneyWithExpenses = yearlyExpenses;
     let indexForSavingChanges = 0;
+    console.log("savingChanges");
+    console.log(savingChanges);
 
     // Add savings to data, graph going up
     for (let indexAge = age; indexAge <= medianLifeLength; indexAge++) {
-
       // Change yearly savings with a savings change
-      if(savingChanges[indexForSavingChanges] && indexAge === savingChanges[indexForSavingChanges].age){
-        yearlySavings = savingChanges[indexForSavingChanges].monthlySavings * 12;
+      if (
+        savingChanges[indexForSavingChanges] &&
+        indexAge === savingChanges[indexForSavingChanges].age
+      ) {
+        yearlySavings =
+          savingChanges[indexForSavingChanges].monthlySavings * 12;
         indexForSavingChanges++;
       }
 
@@ -180,10 +185,19 @@ function FireCalculator() {
       setAgeData(calculatedFire.ageData);
     }, 500);
     return () => clearTimeout(timer);
-  }, [monthlySavings, monthlyExpenses, age, retireAge, inflationPercent, savingChanges]);
+  }, [
+    monthlySavings,
+    monthlyExpenses,
+    age,
+    retireAge,
+    inflationPercent,
+    savingChanges,
+  ]);
 
   const addSavningsChange = () => {
-    const latestSavingsChangeAge = savingChanges[savingChanges.length - 1] ? savingChanges[savingChanges.length - 1].age : age;
+    const latestSavingsChangeAge = savingChanges[savingChanges.length - 1]
+      ? savingChanges[savingChanges.length - 1].age
+      : age;
     setSavingChanges([
       ...savingChanges,
       {
@@ -207,9 +221,18 @@ function FireCalculator() {
       savingChanges.map((change) => {
         if (change.index === index) {
           if (age) return { ...change, age: age };
-          if (savingsSum) return { ...change, monthlySavings: savingsSum };
+          if (savingsSum || savingsSum === 0)
+            return { ...change, monthlySavings: savingsSum };
         }
         return change;
+      })
+    );
+  };
+
+  const removeSavingsChange = (index: number) => {
+    setSavingChanges(
+      savingChanges.filter((change) => {
+        return change.index !== index;
       })
     );
   };
@@ -242,21 +265,11 @@ function FireCalculator() {
                     padding: "0 20px",
                   }}
                 >
-                  <TextField
-                    sx={{ width: "100px" }}
-                    label="Save each month"
-                    variant="standard"
-                    defaultValue={monthlySavings}
-                    size="small"
-                    onChange={(e) =>
-                      setMonthlySavings(parseInt(e.target.value))
-                    }
-                    InputProps={{
-                      startAdornment: (
-                        <InputAdornment position="start">$</InputAdornment>
-                      ),
-                    }}
-                  />
+                  {getDollarTextField(
+                    "Monthly savings",
+                    monthlySavings,
+                    setMonthlySavings
+                  )}
                   <Box sx={{ mt: "25px", width: "280px" }}>
                     <Slider
                       aria-label="Volume"
@@ -286,30 +299,42 @@ function FireCalculator() {
           {savingChanges.map((change) => (
             <Card variant="outlined" key={change.index}>
               <CardContent>
-                {getText(
-                  `at ${change.age} years, change saving sum to ${change.monthlySavings}`
-                )}
-                {getAgeTextField("When", change.age, (age) => {
-                  saveSavningsChange({ index: change.index, age: age });
-                })}
-                <TextField
-                  sx={{ width: "100px" }}
-                  label="New savings"
-                  variant="standard"
-                  defaultValue={change.monthlySavings}
-                  size="small"
-                  onChange={(e) =>
-                    saveSavningsChange({
-                      index: change.index,
-                      savingsSum: parseInt(e.target.value),
-                    })
-                  }
-                  InputProps={{
-                    startAdornment: (
-                      <InputAdornment position="start">$</InputAdornment>
-                    ),
-                  }}
-                />
+                <Flexbox sx={{ justifyContent: "space-between" }}>
+                  <Flexbox sx={{ ml: "20px", flexGrow: 2, gap: "90px" }}>
+                    <Box>
+                      {getAgeTextField("When", change.age, (age) => {
+                        saveSavningsChange({ index: change.index, age: age });
+                      })}
+                    </Box>
+                    <Box>
+                      {getDollarTextField(
+                        "New savings",
+                        change.monthlySavings,
+                        (savings) => {
+                          saveSavningsChange({
+                            index: change.index,
+                            savingsSum: savings,
+                          });
+                        }
+                      )}
+                    </Box>
+                  </Flexbox>
+                  <Box>
+                    <IconButton
+                      aria-label="delete"
+                      onClick={() => removeSavingsChange(change.index)}
+                    >
+                      <CloseIcon />
+                    </IconButton>
+                  </Box>
+                </Flexbox>
+
+                <Divider sx={{ m: "10px 0" }} />
+                <Box sx={{ margin: "0 20px" }}>
+                  {getText(
+                    `At age ${change.age}, monthly savings will be changed to $${change.monthlySavings}.`
+                  )}
+                </Box>
               </CardContent>
             </Card>
           ))}
@@ -326,22 +351,11 @@ function FireCalculator() {
                     alignItems: "baseline",
                   }}
                 >
-                  <TextField
-                    sx={{ width: "100px" }}
-                    id="standard-basic"
-                    label="Monthly expenses"
-                    variant="standard"
-                    defaultValue={monthlyExpenses}
-                    size="small"
-                    onChange={(e) =>
-                      setMonthlyExpenses(parseInt(e.target.value))
-                    }
-                    InputProps={{
-                      startAdornment: (
-                        <InputAdornment position="start">$</InputAdornment>
-                      ),
-                    }}
-                  />
+                  {getDollarTextField(
+                    "Monthly expenses",
+                    monthlyExpenses,
+                    setMonthlyExpenses
+                  )}
                 </Flexbox>
                 <Flexbox
                   sx={{

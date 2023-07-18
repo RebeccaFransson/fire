@@ -4,4 +4,16 @@ och ta summen de har sparat ihop, och göra något med det? Sätt ihop och sen d
 
 
 
-Gör om calculateIdealRetirementAge till att använda en while loop istället
+savings change: kunna ha i oordning med åldern, 35, 45, 37, 55 osv
+
+
+gör om grid systemet för innehållet i korten
+______|______
+      |
+      |
+      |
+______|______
+      |
+
+
+Kunna välja om man vill räkna till retirement age eller 85
