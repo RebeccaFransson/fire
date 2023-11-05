@@ -21,12 +21,6 @@ enum ResultEnum {
   IDEAL,
 }
 
-export type SavingsChange = {
-  index: number;
-  age: number;
-  monthlySavings: number;
-};
-
 function FireCalculator() {
   const medianLifeLength = 85;
   const [monthlySavings, setMonthlySavings] = useState(1000);

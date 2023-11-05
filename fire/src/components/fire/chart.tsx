@@ -2,7 +2,7 @@ import React, { useEffect, useState } from "react";
 import { ApexOptions } from "apexcharts";
 import ApexChart from "react-apexcharts";
 import { bgColors } from "../../styles/colors";
-import { SavingsChange } from "./fire-calculator";
+import { SavingsChange } from "./saving-changes";
 
 type Props = {
   yData: number[];
